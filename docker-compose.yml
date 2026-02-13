@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:15
+    container_name: library_db
+    restart: always
+    environment:
+      POSTGRES_USER: gneto
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: library
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+
+  db-admin:
+    image: dpage/pgadmin4
+    container_name: library_admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+  backend:
+    build: ./backend
+    container_name: library_api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://gneto:password123@db:5432/library
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: library_ui
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3000
