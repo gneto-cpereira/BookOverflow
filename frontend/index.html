@@ -4,25 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BookOverflow</title>
+    <button id="add-book-btn" class="main-btn">+ Novo Livro</button>
   </head>
   <body>
     <div id="app">
       <h1>Minha Biblioteca</h1>
-      <ul id="book-list">
-      </ul>
+      <div id="table-container"></div>
     </div>
     <script type="module" src="src/main.js"></script>
   </body>
   <hr />
-  
-  <section id="add-book-section">
-    <h2>Registar Novo Livro</h2>
-    <form id="book-form">
-      <input type="text" id="title" placeholder="Título" required />
-      <input type="text" id="author" placeholder="Autor" required />
-      <input type="text" id="isbn" placeholder="ISBN (ex: 978...)" required />
-      <button type="submit">Adicionar à Estante</button>
-    </form>
-  </section>
-
 </html>

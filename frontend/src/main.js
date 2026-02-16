@@ -1,17 +1,39 @@
 import { bookApi } from './api/bookApi';
-import { renderBookList } from './components/bookList';
-import { setupBookForm } from './components/bookForm';
+import { renderBookTable } from './components/bookTable';
+import { openBookModal } from './components/bookModal';
 
-// Book list
+// Book Table
 async function refreshLibrary() {
+  // READ
   const books = await bookApi.fetchBooks();
-  renderBookList(books, 'book-list');
+  
+  renderBookTable(
+    books, 
+    // DELETE
+    async (id) => {
+      if (confirm("Tens a certeza que queres remover este livro?")) {
+        await bookApi.deleteBook(id);
+        refreshLibrary();
+      }
+    },
+    // UPDATE
+    async (book) => {
+      const updatedData = await openBookModal(book);
+      if (updatedData) {
+        await bookApi.updateBook(book.id, updatedData);
+        await refreshLibrary();
+      }
+    }
+  );
 }
 
-// Form
-setupBookForm('book-form', async (newBook) => {
-  await bookApi.addBook(newBook);
-  await refreshLibrary();
+// CREATE
+document.getElementById('add-book-btn').addEventListener('click', async () => {
+  const newData = await openBookModal();
+  if (newData) {
+    await bookApi.addBook(newData);
+    await refreshLibrary();
+  }
 });
 
 refreshLibrary();
