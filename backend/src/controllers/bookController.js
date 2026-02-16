@@ -1,16 +1,6 @@
 const db = require('../db');
 
-// READ
-exports.getAllBooks = async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM books ORDER BY created_at DESC');
-    res.status(200).json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao procurar livros." });
-  }
-};
-
-// CREATE
+// --- CREATE ---
 exports.createBook = async (req, res) => {
   const { title, author, isbn, description, shelf_location } = req.body;
   try {
@@ -25,7 +15,40 @@ exports.createBook = async (req, res) => {
   }
 };
 
-// DELETE
+// --- READ ---
+exports.getAllBooks = async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM books ORDER BY created_at DESC');
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao procurar livros." });
+  }
+};
+
+exports.getExternalBook = async (req, res) => {
+  const { isbn } = req.params;
+  try {
+    // 1. Connect with Google API
+    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    const data = await response.json();
+    // 2. Check if it returned a book
+    if (data.totalItems === 0) {
+      return res.status(404).json({ error: "Livro não encontrado na Google Books." });
+    }
+    // 3. Get relevant data
+    const info = data.items[0].volumeInfo;
+    const book = {
+      title: info.title,
+      author: info.authors ? info.authors.join(', ') : 'Autor Desconhecido',
+      isbn: isbn
+    };
+    res.status(200).json(book);
+  } catch (err) {
+    res.status(500).json({ error: "Error querying external API." });
+  }
+};
+
+// --- DELETE ---
 exports.deleteBook = async (req, res) => {
   const { id } = req.params;
   try {
@@ -36,7 +59,7 @@ exports.deleteBook = async (req, res) => {
   }
 };
 
-// UPDATE
+// --- UPDATE ---
 exports.updateBook = async (req, res) => {
   const { id } = req.params;
   const { title, author, isbn } = req.body;
@@ -57,29 +80,3 @@ exports.updateBook = async (req, res) => {
     res.status(500).json({ error: "Erro ao atualizar livro." });
   }
 }
-
-exports.getExternalBook = async (req, res) => {
-  const { isbn } = req.params;
-  try {
-    // 1. Liga para a API da Google
-    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-    const data = await response.json();
-
-    // 2. Verifica se encontrou algum livro
-    if (data.totalItems === 0) {
-      return res.status(404).json({ error: "Livro não encontrado na Google Books." });
-    }
-
-    // 3. Extrai apenas o que nos interessa
-    const info = data.items[0].volumeInfo;
-    const book = {
-      title: info.title,
-      author: info.authors ? info.authors.join(', ') : 'Autor Desconhecido',
-      isbn: isbn
-    };
-
-    res.status(200).json(book);
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao consultar API externa." });
-  }
-};
