@@ -3,6 +3,7 @@ const db = require('../db');
 // --- CREATE ---
 exports.createBook = async (req, res) => {
   const { title, author, isbn, description, shelf_location } = req.body;
+  isbn = isbn.replace(/[- ]/g, "");
   try {
     const queryText = `
       INSERT INTO books (title, author, isbn, description, shelf_location)
@@ -26,25 +27,41 @@ exports.getAllBooks = async (req, res) => {
 };
 
 exports.getExternalBook = async (req, res) => {
-  const { isbn } = req.params;
+  const isbn = req.params.isbn.replace(/[- ]/g, "");
+
   try {
-    // 1. Connect with Google API
-    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-    const data = await response.json();
-    // 2. Check if it returned a book
-    if (data.totalItems === 0) {
-      return res.status(404).json({ error: "Livro não encontrado na Google Books." });
+    // 1º TRY: Google Books
+    let response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    let data = await response.json();
+
+    if (data.totalItems > 0) {
+      const info = data.items[0].volumeInfo;
+      return res.json({
+        title: info.title,
+        author: info.authors ? info.authors.join(', ') : 'Desconhecido',
+        isbn: isbn
+      });
     }
-    // 3. Get relevant data
-    const info = data.items[0].volumeInfo;
-    const book = {
-      title: info.title,
-      author: info.authors ? info.authors.join(', ') : 'Autor Desconhecido',
-      isbn: isbn
-    };
-    res.status(200).json(book);
+
+    // 2º TRY: Open Library (Fallback para livros PT)
+    response = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+    data = await response.json();
+
+    const bookKey = `ISBN:${isbn}`;
+    if (data[bookKey]) {
+      const info = data[bookKey];
+      return res.json({
+        title: info.title,
+        author: info.authors ? info.authors.map(a => a.name).join(', ') : 'Desconhecido',
+        isbn: isbn
+      });
+    }
+
+    // Catch
+    res.status(404).json({ error: "Livro não encontrado em nenhuma base de dados." });
+
   } catch (err) {
-    res.status(500).json({ error: "Error querying external API." });
+    res.status(500).json({ error: "Erro na comunicação com as APIs externas." });
   }
 };
 

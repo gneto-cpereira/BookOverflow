@@ -83,7 +83,7 @@ async function handleISBNSearch(isbnEl, titleEl, authorEl, btn) {
     Swal.resetValidationMessage();
   } catch (err) {
     btn.textContent = '❌';
-    Swal.showValidationMessage('Book not found in Google database');
+    Swal.showValidationMessage('Book not found in External database');
   } finally {
     setTimeout(() => { btn.disabled = false; btn.textContent = '🔍'; }, 1500);
   }
