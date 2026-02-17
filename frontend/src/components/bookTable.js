@@ -39,7 +39,7 @@ export function renderBookTable(books, onDelete, onEdit) {
     data: books,
     search: true,
     sort: true,
-    pagination: { limit: 5 },
+    pagination: { limit: 10 },
     language: {
       search: { placeholder: 'Pesquisar livro...' },
       pagination: {
