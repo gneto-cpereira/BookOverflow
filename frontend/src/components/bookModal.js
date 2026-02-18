@@ -112,7 +112,6 @@ function validateForm() {
  * Refined for PWA / Mobile
  */
 async function startScanner(isbnEl, btnSearch, readerEl) {
-  // Use the imported or window method
   const ScannerClass = window.Html5Qrcode || Html5Qrcode; 
   const html5QrCode = new ScannerClass("reader");
   
@@ -121,7 +120,7 @@ async function startScanner(isbnEl, btnSearch, readerEl) {
   const config = { 
     fps: 10, 
     qrbox: { width: 250, height: 150 },
-    aspectRatio: 1.0 // Garante proporções quadradas/limpas no telemóvel
+    aspectRatio: 1.0
   };
 
   try {
@@ -129,13 +128,12 @@ async function startScanner(isbnEl, btnSearch, readerEl) {
       { facingMode: "environment" }, 
       config,
       (decodedText) => {
-        // SUCCESS: Vibrate (haptic feedback)
         if (navigator.vibrate) navigator.vibrate(100); 
         
         isbnEl.value = decodedText;
         html5QrCode.stop().then(() => {
           readerEl.style.display = 'none';
-          btnSearch.click(); // Trigger Google API Search!
+          btnSearch.click();
         });
       }
     );

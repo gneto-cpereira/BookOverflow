@@ -1,3 +1,6 @@
+/**
+ * Function to setup book Add/Edit form
+ */
 export function setupBookForm(formId, onAddCallback) {
   const form = document.getElementById(formId);
 

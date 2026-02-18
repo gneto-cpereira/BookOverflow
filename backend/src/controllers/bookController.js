@@ -57,7 +57,6 @@ exports.getExternalBook = async (req, res) => {
       });
     }
 
-    // Catch
     res.status(404).json({ error: "Livro não encontrado em nenhuma base de dados." });
 
   } catch (err) {

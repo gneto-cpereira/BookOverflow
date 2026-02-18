@@ -3,17 +3,36 @@ const cors = require('cors');
 const bookRoutes = require('./routes/bookRoutes');
 
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
+/**
+ * Global middleware configuration
+ */
+function setupMiddleware(app) {
+  app.use(cors());
+  app.use(express.json());
+}
 
-app.use('/books', bookRoutes);
+/**
+ * Application routes setup
+ */
+function setupRoutes(app) {
+  app.use('/books', bookRoutes);
+  
+  // Health check endpoint
+  app.get('/', (_, res) => res.json({ status: "BookOverflow API is active" }));
+}
 
-app.get('/', (req, res) => {
-  res.json({ message: "BookOverflow API ativa e organizada!" });
-});
+/**
+ * Initialize and start the server
+ */
+function start() {
+  setupMiddleware(app);
+  setupRoutes(app);
 
-app.listen(port, () => {
-  console.log(`Servidor a correr em http://localhost:${port}`);
-});
+  app.listen(PORT, () => {
+    console.log(`Backend server running on port ${PORT}`);
+  });
+}
+
+start();

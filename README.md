@@ -32,7 +32,7 @@ Key File Structure:
 Each item below represents a completed and documented increment, fulfilling the project's **Definition of Done**:
 1. [x] **System Integrated**
 2. [x] **Tested and Functional**
-3. [x] **Clean and Documented Code**
+3. [x] **Clean and English Documented Code**
 4. [x] **Documented on readme**
 
 ## 📦 Getting Started

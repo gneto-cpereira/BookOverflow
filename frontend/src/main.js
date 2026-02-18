@@ -38,6 +38,7 @@ document.getElementById('add-book-btn').addEventListener('click', async () => {
 
 refreshLibrary();
 
+// PWA configuration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
