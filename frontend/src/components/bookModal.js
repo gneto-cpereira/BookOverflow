@@ -1,5 +1,6 @@
 import Swal from 'sweetalert2';
 import { Html5Qrcode } from 'html5-qrcode';
+import { bookApi } from '../api/bookApi';
 
 /**
  * Main function to open the modal for Adding or Editing
@@ -73,10 +74,8 @@ async function handleISBNSearch(isbnEl, titleEl, authorEl, btn) {
   btn.textContent = '⏳';
 
   try {
-    const res = await fetch(`https://judy-nations-scene-observed.trycloudflare.com/books/external/${isbnEl.value}`);
-    if (!res.ok) throw new Error();
-
-    const data = await res.json();
+    const data = await bookApi.fetchExternalBooks(isbnEl.value)
+    if (!data || data.error) throw new Error();
     titleEl.value = data.title || '';
     authorEl.value = data.author || '';
     btn.textContent = '✅';

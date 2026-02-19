@@ -5,7 +5,7 @@ import { openBookModal } from './components/bookModal';
 // Book Table
 async function refreshLibrary() {
   // READ
-  const books = await bookApi.fetchBooks();
+  const books = await bookApi.fetchAllBooks();
   
   renderBookTable(
     books, 

@@ -1,10 +1,14 @@
-// const API_URL = 'http://localhost:3000/books';
-const API_URL = 'https://judy-nations-scene-observed.trycloudflare.com/books';
+const API_URL = 'http://localhost:3000/books';
 
 export const bookApi = {
     // GET
-    async fetchBooks() {
+    async fetchAllBooks() {
         const response = await fetch(API_URL);
+        return await response.json();
+    },
+    
+    async fetchExternalBooks(isbn){
+        const response = await fetch(`${API_URL}/external/${isbn}`);
         return await response.json();
     },
 
