@@ -37,6 +37,9 @@ function getModalTemplate(book) {
       
       <input id="swal-title" class="swal2-input" placeholder="Title" value="${book?.title || ''}">
       <input id="swal-author" class="swal2-input" placeholder="Author" value="${book?.author || ''}">
+      <input id="swal-description" class="swal2-input" placeholder="Description" value="${book?.description || ''}">
+      <input id="swal-pages" class="swal2-input" placeholder="Pages" value="${book?.pageCount || ''}">
+      <input id="swal-language" class="swal2-input" placeholder="Language" value="${book?.language || ''}">
     </div>
   `;
 }
@@ -48,17 +51,20 @@ function setupEventListeners() {
   const isbnEl = document.getElementById('swal-isbn');
   const titleEl = document.getElementById('swal-title');
   const authorEl = document.getElementById('swal-author');
+  const descriptionEl = document.getElementById('swal-description');
+  const pagesEl = document.getElementById('swal-pages');
+  const languageEl = document.getElementById('swal-language');
   const btnSearch = document.getElementById('btn-search-isbn');
   const btnScan = document.getElementById('btn-scan');
   const readerEl = document.getElementById('reader');
 
   // Clear validation on type
-  [isbnEl, titleEl, authorEl].forEach(el =>
+  [isbnEl, titleEl, authorEl, descriptionEl, pagesEl, languageEl].forEach(el =>
     el.addEventListener('input', () => Swal.resetValidationMessage())
   );
 
   // ISBN Search logic
-  btnSearch.addEventListener('click', () => handleISBNSearch(isbnEl, titleEl, authorEl, btnSearch));
+  btnSearch.addEventListener('click', () => handleISBNSearch(isbnEl, titleEl, authorEl, descriptionEl, pagesEl, languageEl, btnSearch));
 
   // Bar code
   btnScan.addEventListener('click', () => startScanner(isbnEl, btnSearch, readerEl));
@@ -67,7 +73,7 @@ function setupEventListeners() {
 /**
  * Logic to fetch data from Google Books API
  */
-async function handleISBNSearch(isbnEl, titleEl, authorEl, btn) {
+async function handleISBNSearch(isbnEl, titleEl, authorEl, descriptionEl, pagesEl, languageEl, btn) {
   if (!isbnEl.value) return Swal.showValidationMessage('Enter ISBN first');
 
   btn.disabled = true;
@@ -78,6 +84,9 @@ async function handleISBNSearch(isbnEl, titleEl, authorEl, btn) {
     if (!data || data.error) throw new Error();
     titleEl.value = data.title || '';
     authorEl.value = data.author || '';
+    descriptionEl.value = data.description || '';
+    pagesEl.value = data.pages || '';
+    languageEl.value = data.language || '';
     btn.textContent = '✅';
     Swal.resetValidationMessage();
   } catch (err) {
@@ -96,10 +105,13 @@ function validateForm() {
     title: document.getElementById('swal-title').value.trim(),
     author: document.getElementById('swal-author').value.trim(),
     isbn: document.getElementById('swal-isbn').value.trim(),
+    description: document.getElementById('swal-description').value.trim() || 'No description',
+    pages: parseInt(document.getElementById('swal-pages').value) || 0,
+    language: document.getElementById('swal-language').value.trim() || 'pt',
   };
 
   if (!data.title || !data.author || !data.isbn) {
-    Swal.showValidationMessage('All fields are required');
+    Swal.showValidationMessage('Title, Author and ISBN are mandatory');
     return false;
   }
 
@@ -111,24 +123,24 @@ function validateForm() {
  * Refined for PWA / Mobile
  */
 async function startScanner(isbnEl, btnSearch, readerEl) {
-  const ScannerClass = window.Html5Qrcode || Html5Qrcode; 
+  const ScannerClass = window.Html5Qrcode || Html5Qrcode;
   const html5QrCode = new ScannerClass("reader");
-  
+
   readerEl.style.display = 'block';
 
-  const config = { 
-    fps: 10, 
+  const config = {
+    fps: 10,
     qrbox: { width: 250, height: 150 },
     aspectRatio: 1.0
   };
 
   try {
     await html5QrCode.start(
-      { facingMode: "environment" }, 
+      { facingMode: "environment" },
       config,
       (decodedText) => {
-        if (navigator.vibrate) navigator.vibrate(100); 
-        
+        if (navigator.vibrate) navigator.vibrate(100);
+
         isbnEl.value = decodedText;
         html5QrCode.stop().then(() => {
           readerEl.style.display = 'none';

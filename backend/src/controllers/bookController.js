@@ -1,15 +1,19 @@
 const db = require('../db');
 
+/**
+ * Helper to clean ISBN format
+ */
+const cleanISBN = (isbn) => isbn ? isbn.replace(/[- ]/g, "") : "";
+
 // --- CREATE ---
 exports.createBook = async (req, res) => {
-  const { title, author, isbn, description, shelf_location } = req.body;
-  isbn = isbn.replace(/[- ]/g, "");
+  const { title, author, isbn, description, pages, language, shelf_location = 'Main Shelf' } = req.body;
   try {
     const queryText = `
-      INSERT INTO books (title, author, isbn, description, shelf_location)
-      VALUES ($1, $2, $3, $4, $5) RETURNING *;
+      INSERT INTO books (title, author, isbn, description, shelf_location, pages, language)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
     `;
-    const result = await db.query(queryText, [title, author, isbn, description, shelf_location]);
+    const result = await db.query(queryText, [title, author, cleanISBN(isbn), description, shelf_location, pages, language]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: "Erro ao registar livro." });
@@ -27,40 +31,33 @@ exports.getAllBooks = async (req, res) => {
 };
 
 exports.getExternalBook = async (req, res) => {
-  const isbn = req.params.isbn.replace(/[- ]/g, "");
+  const isbn = cleanISBN(req.params.isbn);
 
   try {
-    // 1º TRY: Google Books
-    let response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-    let data = await response.json();
+    // Fetch from both APIs simultaneously
+    const [gRes, olRes] = await Promise.all([
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`).then(r => r.json()),
+      fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`).then(r => r.json())
+    ]);
 
-    if (data.totalItems > 0) {
-      const info = data.items[0].volumeInfo;
-      return res.json({
-        title: info.title,
-        author: info.authors ? info.authors.join(', ') : 'Desconhecido',
-        isbn: isbn
-      });
+    const gInfo = gRes.totalItems > 0 ? gRes.items[0].volumeInfo : null;
+    const olInfo = olRes[`ISBN:${isbn}`] || null;
+
+    if (!gInfo && !olInfo) {
+      return res.status(404).json({ error: "Livro não encontrado." });
     }
 
-    // 2º TRY: Open Library (Fallback para livros PT)
-    response = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
-    data = await response.json();
-
-    const bookKey = `ISBN:${isbn}`;
-    if (data[bookKey]) {
-      const info = data[bookKey];
-      return res.json({
-        title: info.title,
-        author: info.authors ? info.authors.map(a => a.name).join(', ') : 'Desconhecido',
-        isbn: isbn
-      });
-    }
-
-    res.status(404).json({ error: "Livro não encontrado em nenhuma base de dados." });
-
+    // Merge data: Google priority for title/desc, OpenLibrary for others if missing
+    res.json({
+      title: gInfo?.title || olInfo?.title || 'Sem título',
+      author: gInfo?.authors?.join(', ') || olInfo?.authors?.map(a => a.name).join(', ') || 'Desconhecido',
+      isbn: isbn,
+      description: gInfo?.description || 'Sem descrição disponível.',
+      pages: gInfo?.pageCount || olInfo?.number_of_pages || 0,
+      language: gInfo?.language || 'pt'
+    });
   } catch (err) {
-    res.status(500).json({ error: "Erro na comunicação com as APIs externas." });
+    res.status(500).json({ error: "Erro na comunicação com as APIs." });
   }
 };
 
@@ -78,15 +75,15 @@ exports.deleteBook = async (req, res) => {
 // --- UPDATE ---
 exports.updateBook = async (req, res) => {
   const { id } = req.params;
-  const { title, author, isbn } = req.body;
+  const { title, author, isbn, pages, description, language } = req.body;
 
   try {
     const queryText = `
       UPDATE books
-      SET title = $1, author = $2, isbn = $3
-      WHERE id = $4 RETURNING *;
+      SET title = $1, author = $2, isbn = $3, pages = $4, description = $5, language = $6
+      WHERE id = $7 RETURNING *;
     `;
-    const result = await db.query(queryText, [title, author, isbn, id]);
+    const result = await db.query(queryText, [title, author, cleanISBN(isbn), pages, description, language, id]);
 
     if (result.rows.length === 0)
       return res.status(404).json({ error: "Livro não encontrado." });
