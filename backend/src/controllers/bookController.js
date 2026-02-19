@@ -61,6 +61,17 @@ exports.getExternalBook = async (req, res) => {
   }
 };
 
+// Get all unique shelf names from the database
+exports.getShelves = async (req, res) => {
+  try {
+    const result = await db.query('SELECT DISTINCT shelf_location FROM books WHERE shelf_location IS NOT NULL');
+    const shelves = result.rows.map(r => r.shelf_location);
+    res.json(shelves);
+  } catch (err) {
+    res.status(500).json({ error: "Error fetching shelves" });
+  }
+};
+
 // --- DELETE ---
 exports.deleteBook = async (req, res) => {
   const { id } = req.params;
@@ -75,15 +86,15 @@ exports.deleteBook = async (req, res) => {
 // --- UPDATE ---
 exports.updateBook = async (req, res) => {
   const { id } = req.params;
-  const { title, author, isbn, pages, description, language } = req.body;
+  const { title, author, isbn, pages, description, language, shelf_location } = req.body;
 
   try {
     const queryText = `
       UPDATE books
-      SET title = $1, author = $2, isbn = $3, pages = $4, description = $5, language = $6
-      WHERE id = $7 RETURNING *;
+      SET title = $1, author = $2, isbn = $3, pages = $4, description = $5, language = $6, shelf_location = $7
+      WHERE id = $8 RETURNING *;
     `;
-    const result = await db.query(queryText, [title, author, cleanISBN(isbn), pages, description, language, id]);
+    const result = await db.query(queryText, [title, author, cleanISBN(isbn), pages, description, language, shelf_location, id]);
 
     if (result.rows.length === 0)
       return res.status(404).json({ error: "Livro não encontrado." });

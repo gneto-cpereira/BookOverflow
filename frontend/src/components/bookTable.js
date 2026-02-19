@@ -24,6 +24,7 @@ const formatDescription = (text) => {
  */
 const getColumns = (onDelete, onEdit) => [
   { id: 'id', name: 'ID', hidden: true },
+  { id: 'shelf_location', name: 'Shelf' },
   { id: 'title', name: 'Title' },
   { id: 'author', name: 'Author' },
   { id: 'isbn', name: 'ISBN' },
@@ -39,12 +40,13 @@ const getColumns = (onDelete, onEdit) => [
     formatter: (_, row) => {
       const book = {
         id: row.cells[0].data,
-        title: row.cells[1].data,
-        author: row.cells[2].data,
-        isbn: row.cells[3].data,
-        description: row.cells[4].data,
-        pages: row.cells[5].data,
-        language: row.cells[6].data
+        shelf_location: row.cells[1].data,
+        title: row.cells[2].data,
+        author: row.cells[3].data,
+        isbn: row.cells[4].data,
+        description: row.cells[5].data,
+        pages: row.cells[6].data,
+        language: row.cells[7].data
       };
 
       return h('div', { className: 'actions-wrapper' }, [

@@ -9,6 +9,7 @@ This map provides an instant overview of everything the application can currentl
 - **Smart Auto-fill**: Intelligent metadata fetching from multiple sources (Google Books + Open Library) to automatically populate title and author fields via ISBN.
 - **Mobile Experience (PWA)**: Fully installable on the home screen, featuring custom icons and standalone display mode.
 - **Secure Infrastructure**: Remote access via HTTPS through Cloudflare Tunnels, allowing the use of the mobile camera while the server runs locally.
+- **Book Shelves**: Books can be organized by shelves so its easiest to find in the library.
 ## 🏗️ Project Architecture
 The project is designed with a clear separation of concerns to facilitate maintenance:
 

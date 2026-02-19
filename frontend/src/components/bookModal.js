@@ -7,10 +7,17 @@ import { bookApi } from '../api/bookApi';
  */
 export async function openBookModal(book = null) {
   const isEdit = !!book;
+  
+  let shelves = [];
+  try {
+    shelves = await bookApi.fetchShelves();
+  } catch (err) {
+    console.warn("Could not fetch shelves, using defaults", err);
+  }
 
   const { value: formValues } = await Swal.fire({
     title: isEdit ? 'Edit Book' : 'Add via ISBN',
-    html: getModalTemplate(book),
+    html: getModalTemplate(book, shelves),
     didOpen: () => setupEventListeners(),
     preConfirm: () => validateForm(),
     focusConfirm: false,
@@ -24,7 +31,11 @@ export async function openBookModal(book = null) {
 /**
  * Returns the HTML structure for the modal
  */
-function getModalTemplate(book) {
+function getModalTemplate(book, shelves = []) {
+  const shelfOptions = (shelves || [])
+    .map(s => `<option value="${s}">`)
+    .join('');
+
   return `
     <div style="display: flex; flex-direction: column; gap: 10px;">
       <div id="reader" style="width: 100%; display: none; border-radius: 8px; overflow: hidden;"></div>
@@ -34,6 +45,13 @@ function getModalTemplate(book) {
         <button type="button" id="btn-scan" class="swal2-confirm swal2-styled" style="margin: 0; background-color: #6e7881;">📷</button>
         <button type="button" id="btn-search-isbn" class="swal2-confirm swal2-styled" style="margin: 0;">🔍</button>
       </div>
+
+      <label style="text-align: left; font-size: 0.8rem; color: #666;">Shelf Location</label>
+      <input id="swal-shelf" list="shelf-options" class="swal2-input" style="margin-top: 0;" 
+             placeholder="Select or type new shelf..." value="${book?.shelf_location || ''}">
+      <datalist id="shelf-options">
+        ${shelfOptions}
+      </datalist>
       
       <input id="swal-title" class="swal2-input" placeholder="Title" value="${book?.title || ''}">
       <input id="swal-author" class="swal2-input" placeholder="Author" value="${book?.author || ''}">
@@ -108,6 +126,7 @@ function validateForm() {
     description: document.getElementById('swal-description').value.trim() || 'No description',
     pages: parseInt(document.getElementById('swal-pages').value) || 0,
     language: document.getElementById('swal-language').value.trim() || 'pt',
+    shelf_location: document.getElementById('swal-shelf').value.trim() || 'Main Shelf'
   };
 
   if (!data.title || !data.author || !data.isbn) {

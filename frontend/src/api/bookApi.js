@@ -6,9 +6,14 @@ export const bookApi = {
         const response = await fetch(API_URL);
         return await response.json();
     },
-    
-    async fetchExternalBooks(isbn){
+
+    async fetchExternalBooks(isbn) {
         const response = await fetch(`${API_URL}/external/${isbn}`);
+        return await response.json();
+    },
+
+    async fetchShelves() {
+        const response = await fetch(`${API_URL}/shelves`);
         return await response.json();
     },
 
