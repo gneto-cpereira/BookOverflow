@@ -10,6 +10,8 @@ This map provides an instant overview of everything the application can currentl
 - **Mobile Experience (PWA)**: Fully installable on the home screen, featuring custom icons and standalone display mode.
 - **Secure Infrastructure**: Remote access via HTTPS through Cloudflare Tunnels, allowing the use of the mobile camera while the server runs locally.
 - **Book Shelves**: Books can be organized by shelves so its easiest to find in the library.
+- **Automatic Cloudflare**: An automatic cloudflare link will be generated for use.
+
 ## 🏗️ Project Architecture
 The project is designed with a clear separation of concerns to facilitate maintenance:
 
@@ -38,11 +40,11 @@ Each item below represents a completed and documented increment, fulfilling the 
 
 ## 📦 Getting Started
 1. Ensure you have **Docker** installed.
-2. In the project root, run:
+2. Create a `.env` file in the root directory with your database credentials (see `.env.example`).
+3. In the project root, run:
 ```
-docker compose up -d --build
+./up.sh
 ```
-3. Access the app at `http://localhost:5173` on your PC.
-4. To use the PWA and camera features on mobile, a secure tunnel (HTTPS) is required.
+4. Access the app via the *given link* on any device.
 
 (*ON GOING PROJECT*)

@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/books';
+const API_URL = '/books';
 
 export const bookApi = {
     // GET
