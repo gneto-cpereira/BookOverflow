@@ -144,13 +144,15 @@ function validateForm() {
 async function startScanner(isbnEl, btnSearch, readerEl) {
   const ScannerClass = window.Html5Qrcode || Html5Qrcode;
   const html5QrCode = new ScannerClass("reader");
-
   readerEl.style.display = 'block';
 
   const config = {
-    fps: 10,
-    qrbox: { width: 250, height: 150 },
-    aspectRatio: 1.0
+    fps: 20,
+    qrbox: { width: 150, height: 70 },
+    aspectRatio: 1.0,
+    experimentalFeatures: {
+      useBarCodeDetectorIfSupported: true
+    }
   };
 
   try {
@@ -159,7 +161,6 @@ async function startScanner(isbnEl, btnSearch, readerEl) {
       config,
       (decodedText) => {
         if (navigator.vibrate) navigator.vibrate(100);
-
         isbnEl.value = decodedText;
         html5QrCode.stop().then(() => {
           readerEl.style.display = 'none';
@@ -168,7 +169,6 @@ async function startScanner(isbnEl, btnSearch, readerEl) {
       }
     );
   } catch (err) {
-    console.error("Camera access error:", err);
-    Swal.showValidationMessage("Permissão de câmara negada ou erro de hardware.");
+    console.error("Erro no Scanner:", err);
   }
 }
